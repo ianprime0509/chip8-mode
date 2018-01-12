@@ -141,8 +141,11 @@
   "Move point to the start of the instruction on this line."
   (interactive)
   (beginning-of-line)
-  (re-search-forward (concat chip8-label-regexp "\\s-*")
-                     nil t))
+  (cond
+   ((looking-at (concat chip8-label-regexp "\\s-*"))
+    (goto-char (match-end 0)))
+   ((looking-at chip8-assignment-regexp)
+    (goto-char (- (match-end 0) 1)))))
 
 (defun chip8-back-to-indentation ()
   "Move point to the start of the instruction on this line.
@@ -155,6 +158,18 @@ character on the line (the behavior of `back-to-indentation')."
     (when (= old-point (point))
       (back-to-indentation))))
 
+(defun chip8--indent-label-or-assignment ()
+  "Move a labelled statement or assignment to column 0.
+This function will also move point past the label or constant
+name."
+  (cond
+   ((looking-at chip8-label-regexp)
+    (goto-char (match-end 0))
+    (delete-region (match-beginning 0) (match-beginning 1)))
+   ((looking-at chip8-assignment-regexp)
+    (goto-char (match-end 1))
+    (delete-region (match-beginning 0) (match-beginning 1)))))
+
 (defun chip8-indent-line ()
   "Indent the current line as Chip-8 assembly.
 This function will attempt to position the label (if present) at
@@ -166,9 +181,7 @@ column 0 and the instruction at the column specified by
     (if (looking-at "^\\(\\s-*\\);;;")
         ;; Put section comments at the beginning of the line.
         (replace-match "" nil nil nil 1)
-      ;; Move the label (if any) to column 0.
-      (when (re-search-forward chip8-label-regexp nil t)
-        (delete-region (match-beginning 0) (match-beginning 1)))
+      (chip8--indent-label-or-assignment)
       ;; Attempt to move the operation to `chip8-instruction-column', or to one
       ;; space after the end of the label (whichever is furthest to the right).
       (when (looking-at "\\s-*")
