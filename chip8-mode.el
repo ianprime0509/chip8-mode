@@ -131,6 +131,7 @@
     (modify-syntax-entry ?/ ".")
     (modify-syntax-entry ?% ".")
     (modify-syntax-entry ?~ ".")
+    (modify-syntax-entry ?= ".")
     (syntax-table))
   "Syntax table used in Chip-8 mode.")
 
@@ -194,7 +195,7 @@ column 0 and the instruction at the column specified by
                               (current-column)))
     (chip8-back-to-instruction)))
 
-(defconst chip8-electric-indent-chars '(?: ?\;)
+(defconst chip8-electric-indent-chars '(?: ?\; ?=)
   "Characters to add to `electric-indent-chars' in `chip8-mode'.")
 
 (define-derived-mode chip8-mode prog-mode "Chip8"
