@@ -83,7 +83,11 @@
 
 (defconst chip8-identifier-regexp
   "\\(\\_<[A-Za-z_][A-Za-z0-9_]*\\_>\\)"
-  "Regexp that matches all valid identifiers (label names) in Chip-8 assembly.")
+  "Regexp that matches all valid identifiers in Chip-8 assembly.")
+
+(defconst chip8-assignment-regexp
+  (concat "^\\s-*" chip8-identifier-regexp "\\s-*=")
+  "Regexp that matches all assignment statements.")
 
 (defconst chip8-label-regexp
   (concat "^\\s-*" chip8-identifier-regexp ":")
@@ -130,6 +134,56 @@
     (syntax-table))
   "Syntax table used in Chip-8 mode.")
 
+(defvar chip8-instruction-column 8
+  "Default column to use for indenting instructions.")
+
+(defun chip8-back-to-instruction ()
+  "Move point to the start of the instruction on this line."
+  (interactive)
+  (beginning-of-line)
+  (re-search-forward (concat chip8-label-regexp "\\s-*")
+                     nil t))
+
+(defun chip8-back-to-indentation ()
+  "Move point to the start of the instruction on this line.
+If point is already at the start of the instruction, it is
+instead moved to the position of the first non-whitespace
+character on the line (the behavior of `back-to-indentation')."
+  (interactive)
+  (let ((old-point (point)))
+    (chip8-back-to-instruction)
+    (when (= old-point (point))
+      (back-to-indentation))))
+
+(defun chip8-indent-line ()
+  "Indent the current line as Chip-8 assembly.
+This function will attempt to position the label (if present) at
+column 0 and the instruction at the column specified by
+`chip8-instruction-column'."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at "^\\(\\s-*\\);;;")
+        ;; Put section comments at the beginning of the line.
+        (replace-match "" nil nil nil 1)
+      ;; Move the label (if any) to column 0.
+      (when (re-search-forward chip8-label-regexp nil t)
+        (delete-region (match-beginning 0) (match-beginning 1)))
+      ;; Attempt to move the operation to `chip8-instruction-column', or to one
+      ;; space after the end of the label (whichever is furthest to the right).
+      (when (looking-at "\\s-*")
+        (let* ((columns (- chip8-instruction-column
+                           (current-column)))
+               (indent (max columns 1)))
+          (replace-match (make-string indent ?\s))))))
+  (when (< (current-column) (save-excursion
+                              (chip8-back-to-instruction)
+                              (current-column)))
+    (chip8-back-to-instruction)))
+
+(defconst chip8-electric-indent-chars '(?: ?\;)
+  "Characters to add to `electric-indent-chars' in `chip8-mode'.")
+
 (define-derived-mode chip8-mode prog-mode "Chip8"
   "TODO: fill in the docstring."
   :group 'chip8-mode
@@ -138,7 +192,15 @@
   ;; and ADD will both be recognized as operations).
   (setq font-lock-defaults '(chip8-font-lock-keywords nil t))
   (setq-local comment-start "; ")
-  (setq-local comment-end ""))
+  (setq-local comment-end "")
+  (setq imenu-generic-expression `((nil ,chip8-label-regexp 1)
+                                   ("Constants" ,chip8-assignment-regexp 1)))
+  (setq imenu-case-fold-search t)
+  (define-key chip8-mode-map
+    [remap back-to-indentation] 'chip8-back-to-indentation)
+  (setq indent-line-function 'chip8-indent-line)
+  (setq-local electric-indent-chars (append electric-indent-chars
+                                            chip8-electric-indent-chars)))
 
 (provide 'chip8-mode)
 
