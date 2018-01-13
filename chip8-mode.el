@@ -27,39 +27,9 @@
   "Mode for editing Chip-8 assembler code."
   :group 'languages)
 
-(defgroup chip8-mode-faces ()
-  "Faces used in `chip8-mode'."
-  :group 'chip8-mode)
-
-(defface chip8-constants
-  '((t :inherit (font-lock-constant-face)))
-  "Face for constants (e.g. numeric literals)."
-  :group 'chip8-mode-faces)
-
-(defface chip8-identifiers
-  '((t :inherit (font-lock-variable-name-face)))
-  "Face for label names used in expressions."
-  :group 'chip8-mode-faces)
-
-(defface chip8-labels
-  '((t :inherit (font-lock-function-name-face)))
-  "Face for label names used to mark a line."
-  :group 'chip8-mode-faces)
-
-(defface chip8-operations
-  '((t :inherit (font-lock-builtin-face)))
-  "Face for operations."
-  :group 'chip8-mode-faces)
-
-(defface chip8-pseudo-operations
-  '((t :inherit (font-lock-preprocessor-face)))
-  "Face for pseudo-operations."
-  :group 'chip8-mode-faces)
-
-(defface chip8-registers
-  '((t :inherit (font-lock-keyword-face)))
-  "Face for registers."
-  :group 'chip8-mode-faces)
+;;; Helpful constants
+;; These are mostly lists of keywords and regexps for finding certain syntactic
+;; elements (such as identifiers, labels, etc.).
 
 (defconst chip8-operations
   '("SCD" "CLS" "RET" "SCR" "SCL" "EXIT" "LOW" "HIGH" "JP" "CALL" "SE" "SNE"
@@ -105,6 +75,42 @@
   (regexp-opt chip8-registers 'symbols)
   "Regexp that matches all Chip-8 registers.")
 
+;;; Font lock (syntax highlighting)
+
+(defgroup chip8-mode-faces ()
+  "Faces used in `chip8-mode'."
+  :group 'chip8-mode)
+
+(defface chip8-constants
+  '((t :inherit (font-lock-constant-face)))
+  "Face for constants (e.g. numeric literals)."
+  :group 'chip8-mode-faces)
+
+(defface chip8-identifiers
+  '((t :inherit (font-lock-variable-name-face)))
+  "Face for label names used in expressions."
+  :group 'chip8-mode-faces)
+
+(defface chip8-labels
+  '((t :inherit (font-lock-function-name-face)))
+  "Face for label names used to mark a line."
+  :group 'chip8-mode-faces)
+
+p(defface chip8-operations
+  '((t :inherit (font-lock-builtin-face)))
+  "Face for operations."
+  :group 'chip8-mode-faces)
+
+(defface chip8-pseudo-operations
+  '((t :inherit (font-lock-preprocessor-face)))
+  "Face for pseudo-operations."
+  :group 'chip8-mode-faces)
+
+(defface chip8-registers
+  '((t :inherit (font-lock-keyword-face)))
+  "Face for registers."
+  :group 'chip8-mode-faces)
+
 (defconst chip8-font-lock-keywords
   `((,chip8-label-regexp . (1 'chip8-labels))
     (,chip8-operation-regexp . 'chip8-operations)
@@ -113,6 +119,8 @@
     (,chip8-register-regexp . 'chip8-registers)
     (,chip8-identifier-regexp . 'chip8-identifiers))
   "Font lock keywords for `chip8-mode'.")
+
+;;; Syntax
 
 (defvar chip8-mode-syntax-table
   (with-syntax-table (make-syntax-table)
@@ -134,6 +142,8 @@
     (modify-syntax-entry ?= ".")
     (syntax-table))
   "Syntax table used in Chip-8 mode.")
+
+;;; Indentation
 
 (defvar chip8-instruction-column 8
   "Default column to use for indenting instructions.")
@@ -197,6 +207,8 @@ column 0 and the instruction at the column specified by
 
 (defconst chip8-electric-indent-chars '(?: ?\; ?=)
   "Characters to add to `electric-indent-chars' in `chip8-mode'.")
+
+;;; Major mode definition
 
 (define-derived-mode chip8-mode prog-mode "Chip8"
   "TODO: fill in the docstring."
