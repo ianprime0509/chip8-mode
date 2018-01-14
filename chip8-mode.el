@@ -96,7 +96,7 @@
   "Face for label names used to mark a line."
   :group 'chip8-mode-faces)
 
-p(defface chip8-operations
+(defface chip8-operations
   '((t :inherit (font-lock-builtin-face)))
   "Face for operations."
   :group 'chip8-mode-faces)
@@ -208,6 +208,49 @@ column 0 and the instruction at the column specified by
 (defconst chip8-electric-indent-chars '(?: ?\; ?=)
   "Characters to add to `electric-indent-chars' in `chip8-mode'.")
 
+;;; Commenting
+
+(defun chip8--line-empty-p ()
+  "Return non-nil if the current line is only whitespace."
+  (save-excursion
+    (beginning-of-line)
+    (looking-at-p "^\\s-*$")))
+
+(defun chip8--insert-line-comment ()
+  "Insert a line comment on the current line.
+A line comment begins with a single semicolon, either in the
+column specified by `comment-column' or one space after the last
+character in the line (whichever is furthest to the right)."
+  (end-of-line)
+  (delete-horizontal-space)
+  (if (> (current-column) comment-column)
+      (insert " ; ")
+    (insert-char ?\s (- comment-column (current-column)))
+    (insert "; ")))
+
+(defun chip8--insert-section-comment ()
+  "Insert a section comment on the current line.
+A section comment begins with either three semicolons starting in
+the first column (a heading comment) or two semicolons starting
+at `chip8-instruction-column'."
+  (if (= (current-column) 0)
+      (insert ";;; ")
+    (beginning-of-line)
+    (delete-horizontal-space)
+    (insert-char ?\s chip8-instruction-column)
+    (insert ";; ")))
+
+(defun chip8-insert-comment ()
+  "Insert a Chip-8 assembly comment on the current line.
+If the line is not blank, we insert a single-semicolon comment at
+`comment-column'.  If the line is blank, then we insert a
+three-semicolon heading comment if we are in the first column or
+a properly indented two-semicolon section comment if not."
+  (interactive)
+  (if (chip8--line-empty-p)
+      (chip8--insert-section-comment)
+    (chip8--insert-line-comment)))
+
 ;;; Major mode definition
 
 (define-derived-mode chip8-mode prog-mode "Chip8"
@@ -217,7 +260,7 @@ column 0 and the instruction at the column specified by
   ;; The t at the end of `font-lock-defaults' will enable case folding (so add
   ;; and ADD will both be recognized as operations).
   (setq font-lock-defaults '(chip8-font-lock-keywords nil t))
-  (setq-local comment-start "; ")
+  (setq-local comment-start ";")
   (setq-local comment-end "")
   (setq imenu-generic-expression `((nil ,chip8-label-regexp 1)
                                    ("Constants" ,chip8-assignment-regexp 1)))
@@ -226,7 +269,8 @@ column 0 and the instruction at the column specified by
     [remap back-to-indentation] 'chip8-back-to-indentation)
   (setq indent-line-function 'chip8-indent-line)
   (setq-local electric-indent-chars (append electric-indent-chars
-                                            chip8-electric-indent-chars)))
+                                            chip8-electric-indent-chars))
+  (setq-local comment-insert-comment-function 'chip8-insert-comment))
 
 (provide 'chip8-mode)
 
