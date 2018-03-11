@@ -254,7 +254,7 @@ a properly indented two-semicolon section comment if not."
 ;;; Major mode definition
 
 (define-derived-mode chip8-mode prog-mode "Chip8"
-  "TODO: fill in the docstring."
+  "Major mode for editing Chip-8/Super-Chip assembly."
   :group 'chip8-mode
   :syntax-table chip8-mode-syntax-table
   ;; The t at the end of `font-lock-defaults' will enable case folding (so add
