@@ -267,7 +267,7 @@ a properly indented two-semicolon section comment if not."
   (setq imenu-case-fold-search t)
   (define-key chip8-mode-map
     [remap back-to-indentation] 'chip8-back-to-indentation)
-  (setq indent-line-function 'chip8-indent-line)
+  (setq-local indent-line-function 'chip8-indent-line)
   (setq-local electric-indent-chars (append electric-indent-chars
                                             chip8-electric-indent-chars))
   (setq-local comment-insert-comment-function 'chip8-insert-comment))
