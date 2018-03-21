@@ -48,7 +48,7 @@
   "List of registers used in Chip-8 assembly.")
 
 (defconst chip8-number-regexp
-  "\\(\\_<\\(:?[0-9]+\\|#[[:xdigit:]]+\\|\\$[01]+\\)\\_>\\)"
+  "\\(\\_<\\(:?[0-9]+\\|#[[:xdigit:]]+\\|\\$[01\\.]+\\)\\_>\\)"
   "Regexp that matches a numeric literal in Chip-8 assembly.")
 
 (defconst chip8-identifier-regexp
@@ -124,6 +124,7 @@
 
 (defvar chip8-mode-syntax-table
   (with-syntax-table (make-syntax-table)
+    (modify-syntax-entry ?. "w")
     (modify-syntax-entry ?\; "<")
     (modify-syntax-entry ?\n ">")
     (modify-syntax-entry ?# "_")
